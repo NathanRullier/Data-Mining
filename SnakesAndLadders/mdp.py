@@ -23,13 +23,27 @@ class Game:
 class Board:
     
     layout = np.ndarray([])
+    graph = {1: [2],
+             2: [3],
+             3: [4,11],
+             4: [5],
+             5: [6],
+             6: [7],
+             7: [8],
+             8: [9],
+             9: [10],
+             10: [15],
+             11: [12],
+             12: [13],
+             13: [14],
+             14: [15]}
     
     def __init__(self, nbrTraps,typeOfTraps): 
         self.layout = np.zeros(15)
         self.generateLayout(nbrTraps,typeOfTraps)
     
     def generateLayout(nbrTraps,typeOfTraps):
-        for x in range(0,nbrTraps):
+        for i in range(0,nbrTraps):
             rdPos = rd.randint(1,13)
             while layout[rdPos] != 0 :
                 ++rdPos
@@ -53,21 +67,18 @@ class Movement:
         self.player = player
         self.board = board
         
-        
     def throwSecurityDice(self):
         if self.frozen == True :
             self.frozen = False
             return
-        diceRslt = rd.randint(0,1)
-        Player.position += diceRslt
+        self.move(rd.randint(0,1))
         return
     
     def throwNormalDice(self):
         if self.frozen == True :
             self.frozen = False
             return
-        diceRslt = rd.randint(0,2)
-        Player.position += diceRslt
+        self.move(rd.randint(0,2))
         self.checkForTraps()
         return
     
@@ -94,5 +105,13 @@ class Movement:
            
                      
        return
+   
+    def move(self, nbrMv):
+        if self.player.position == 3 and nbrMv > 0:
+            self.board.graph[3[rd.randint(0,1)]]
+            --nbrMv
+            
+        for i in range(0,nbrMv):
+            self.player.position = self.board.graph[self.player.position]
+        return
         
- 
