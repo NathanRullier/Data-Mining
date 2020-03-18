@@ -1,6 +1,9 @@
 import numpy as np
 import random as rd
 
+from matplotlib._text_layout import layout
+
+
 class Game:
     
     board = None
@@ -14,10 +17,53 @@ class Game:
         self.movement = Movement(self.player,self.board)
         self.markovDecision(self.board.layout, self.circle)
 
-    def markovDecision(layout, circle): 
+    def min(self, a, b):
+        if a < b:
+            return a
+        else:
+            return b
+
+    def V(self, state):
+        if state == 15:
+            return 0
+        else:
+            board = Board()
+            nextState = board.graph[state]
+
+            if len(nextState == 1):
+                dice1 = 1 + self.V(nextState[0])/2
+                if state == 14:
+                    dice2 = 1
+                else:
+                    dice2 = 1 + self.V(nextState[0])/3 + self.V(board.graph[nextState[0]][0])/3
+                a = min(dice1, dice2)
+
+            if len(nextState == 2):
+                dice1 = 1 + self.V(nextState[0])/2
+                if state == 14:
+                    dice2 = 1
+                else:
+                    dice2 = 1 + self.V(nextState[0])/3 + self.V(board.graph[nextState[0]][0])/3
+                a1 = min(dice1, dice2)
+                dice1 = 1 + self.V(nextState[1])/2
+                if state == 14:
+                    dice2 = 1
+                else:
+                    dice2 = 1 + self.V(nextState[1])/3 + self.V(board.graph[nextState[1]][0])/3
+                a2 = min(dice1, dice2)
+
+                a = min(a1, a2)
+
+        return a
+
+    def markovDecision(layout, circle):
+
         Expect = np.array([]);
         Dice = np.array([]);
+
+
         markovDecisionsList = [Expect,Dice]
+
         return markovDecisionsList
 
 class Board:
@@ -66,14 +112,16 @@ class Movement:
     def __init__(self, player, board): 
         self.player = player
         self.board = board
-        
+
+    #probabilité = 0.5
     def throwSecurityDice(self):
         if self.frozen == True :
             self.frozen = False
             return
         self.move(rd.randint(0,1))
         return
-    
+
+    #probability = 0.333..
     def throwNormalDice(self):
         if self.frozen == True :
             self.frozen = False
@@ -115,3 +163,8 @@ class Movement:
             self.player.position = self.board.graph[self.player.position]
         return
         
+
+#
+# def main():
+#    a = Game()
+#    b = a.V(0)
