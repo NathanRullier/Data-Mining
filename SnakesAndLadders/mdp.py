@@ -24,14 +24,11 @@ class Game:
             return b
 
     def V(self, state):
-        print("state")
-        print(state)
         if state == 15:
             return 0
 
         else:
             nextState = self.board.graph[state]
-            print(nextState)
             if len(nextState) == 1:
                 dice1 = 1 + self.V(nextState[0])/2
                 if state == 10:
@@ -40,7 +37,6 @@ class Game:
                     if state == 14:
                         dice2 = 1
                     else:
-                      print(self.board.graph[nextState])
                       dice2 = 1 + self.V(nextState[0])/3 + self.V(self.board.graph[nextState[0]][0])/3
                 a = min(dice1, dice2)
 
@@ -175,5 +171,5 @@ class Movement:
 
 if __name__ == "__main__":
     a = Game()
-    b = a.V(9)
+    b = a.V(1)
     print(b)
