@@ -17,56 +17,84 @@ class Game:
         self.movement = Movement(self.player, self.board)
         self.markovDecision(self.board.layout, self.circle)
 
-    def min(self, a, b):
+    def min(self,a, b):
         if a < b:
-            return a
+            return a, 1
         else:
-            return b
+            return b, 2
+
+    def minValue(self, a, valueA, b, valueB):
+        if a < b:
+            return a, valueA
+        else:
+            return b, valueB
 
     def V(self, state):
         if state == 15:
-            return 0
+            return 0, 1
 
         else:
             nextState = self.board.graph[state]
             if len(nextState) == 1:
-                dice1 = 1 + self.V(nextState[0])/2
+                nextV , nextdice= self.V(nextState[0])
+                valuedice1 = 1 + nextV/2
+
                 if state == 10:
-                    dice2 = 1
+                    valuedice2 = 1
                 else:
                     if state == 14:
-                        dice2 = 1
+                        valuedice2 = 1
                     else:
-                      dice2 = 1 + self.V(nextState[0])/3 + self.V(self.board.graph[nextState[0]][0])/3
-                a = min(dice1, dice2)
+                      nextV , nextdice= self.V(nextState[0])
+                      nextnextV, nextnextdice = self.V(self.board.graph[nextState[0]][0])
+                      valuedice2 = 1 + nextV/3 + nextnextV/3
+
+                a, dice = self.min(valuedice1, valuedice2)
 
             if len(nextState) == 2:
-                dice1 = 1 + self.V(nextState[0])/2
+                nextV , nextdice= self.V(nextState[0])
+                valuedice1 = 1 + nextV/2
                 if state == 14:
-                    dice2 = 1
+                    valuedice2 = 1
                 else:
-                    dice2 = 1 + self.V(nextState[0])/3 + self.V(self.board.graph[nextState[0]][0])/3
-                a1 = min(dice1, dice2)
-                dice1 = 1 + self.V(nextState[1])/2
+                    nextV , nextdice= self.V(nextState[0])
+                    nextnextV, nextnextdice = self.V(self.board.graph[nextState[0]][0])
+                    valuedice2 = 1 + nextV/3 + nextnextV/3
+
+                a1, diceFirst = self.min(valuedice1, valuedice2)
+
+                nextV , nextdice= self.V(nextState[0])
+                valuedice1 = 1 + nextV/2
                 if state == 14:
-                    dice2 = 1
+                    valuedice2 = 1
                 else:
-                    dice2 = 1 + self.V(nextState[1])/3 + self.V(self.board.graph[nextState[1]][0])/3
-                a2 = min(dice1, dice2)
+                    nextV , nextdice= self.V(nextState[0])
+                    nextnextV, nextnextdice = self.V(self.board.graph[nextState[0]][0])
+                    valuedice2 = 1 + nextV/3 + nextnextV/3
 
-                a = min(a1, a2)
+                a2, diceSecond = self.min(valuedice1, valuedice2)
 
-            return a
+                a, dice= self.minValue(a1, diceFirst,a2, diceSecond)
 
-
-
-
-    def markovDecision(layout, lay , circle):
-
-        Expect = np.array([]);
-        Dice = np.array([]);
+            return a, dice
 
 
+
+
+    def markovDecision(self, layout, circle):
+
+        arrayExpected = []
+        arrayDice = []
+
+        for i in range(1,15):
+            value, dice = self.V(i)
+            arrayExpected.append(value)
+            arrayDice.append(dice)
+
+        print(arrayDice)
+        print(arrayExpected)
+        Expect = np.array(arrayExpected);
+        Dice = np.array(arrayDice);
         markovDecisionsList = [Expect,Dice]
 
         return markovDecisionsList
