@@ -23,20 +23,27 @@ class Game:
         else:
             return b, 2
 
-    def minValue(self, a, valueA, b, valueB):
+    def minTour(self,a, b):
         if a < b:
-            return a, valueA
+            return a
         else:
-            return b, valueB
+            return b
 
-    def V(self, state):
+    def minValue(self, a, valueA, b, valueB, tour1, tour2):
+        if a < b:
+            return a, valueA, tour1
+        else:
+            return b, valueB, tour2
+
+    def V(self, state, tour):
         if state == 15:
-            return 0, 1
+            return 0, 1, tour
 
         else:
+            tour = tour +1
             nextState = self.board.graph[state]
             if len(nextState) == 1:
-                nextV , nextdice= self.V(nextState[0])
+                nextV , nextdice, tourTotal= self.V(nextState[0], tour)
                 valuedice1 = 1 + nextV/2
 
                 if state == 10:
@@ -45,38 +52,41 @@ class Game:
                     if state == 14:
                         valuedice2 = 1
                     else:
-                      nextV , nextdice= self.V(nextState[0])
-                      nextnextV, nextnextdice = self.V(self.board.graph[nextState[0]][0])
+                      nextV , nextdice, tourA= self.V(nextState[0],tour)
+                      nextnextV, nextnextdice, tourB = self.V(self.board.graph[nextState[0]][0],tour)
+                      tourTotal = self.minTour(tourA, tourB)
                       valuedice2 = 1 + nextV/3 + nextnextV/3
 
                 a, dice = self.min(valuedice1, valuedice2)
 
             if len(nextState) == 2:
-                nextV , nextdice= self.V(nextState[0])
+                nextV , nextdice, tourTotal1= self.V(nextState[0], tour)
                 valuedice1 = 1 + nextV/2
                 if state == 14:
                     valuedice2 = 1
                 else:
-                    nextV , nextdice= self.V(nextState[0])
-                    nextnextV, nextnextdice = self.V(self.board.graph[nextState[0]][0])
+                    nextV , nextdice, tourA= self.V(nextState[0], tour)
+                    nextnextV, nextnextdice, tourB = self.V(self.board.graph[nextState[0]][0], tour)
+                    tourTotal1 = self.minTour(tourA,tourB)
                     valuedice2 = 1 + nextV/3 + nextnextV/3
 
                 a1, diceFirst = self.min(valuedice1, valuedice2)
 
-                nextV , nextdice= self.V(nextState[0])
+                nextV , nextdice, tourTotal2= self.V(nextState[0], tour)
                 valuedice1 = 1 + nextV/2
                 if state == 14:
                     valuedice2 = 1
                 else:
-                    nextV , nextdice= self.V(nextState[0])
-                    nextnextV, nextnextdice = self.V(self.board.graph[nextState[0]][0])
+                    nextV , nextdice, tour2A= self.V(nextState[0], tour)
+                    nextnextV, nextnextdice, tour2B = self.V(self.board.graph[nextState[0]][0], tour)
+                    tourTotal2= self.minTour(tour2A,tour2B)
                     valuedice2 = 1 + nextV/3 + nextnextV/3
 
                 a2, diceSecond = self.min(valuedice1, valuedice2)
 
-                a, dice= self.minValue(a1, diceFirst,a2, diceSecond)
+                a, dice, tourTotal= self.minValue(a1, diceFirst,a2, diceSecond, tourTotal1, tourTotal2)
 
-            return a, dice
+            return a, dice, tourTotal
 
 
 
@@ -85,14 +95,20 @@ class Game:
 
         arrayExpected = []
         arrayDice = []
+        arrayV=[]
 
         for i in range(1,15):
-            value, dice = self.V(i)
-            arrayExpected.append(value)
+            value, dice, tour = self.V(i, 0)
+            arrayExpected.append(tour)
             arrayDice.append(dice)
-
+            arrayV.append(value)
+            
+        print("dice")
         print(arrayDice)
+        print("number of expected tour")
         print(arrayExpected)
+        print("value of Markov equation")
+        print(arrayV)
         Expect = np.array(arrayExpected);
         Dice = np.array(arrayDice);
         markovDecisionsList = [Expect,Dice]
@@ -199,5 +215,3 @@ class Movement:
 
 if __name__ == "__main__":
     a = Game()
-    b = a.V(1)
-    print(b)
