@@ -1,8 +1,6 @@
 import numpy as np
 import random as rd
 
-from matplotlib._text_layout import layout
-
 
 class Game:
 
