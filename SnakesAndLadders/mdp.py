@@ -47,13 +47,12 @@ class Game:
         #Si on est sur une autre case
         else:
             tour += 1 #on itere d'abord le nombre de tour
-            nextState = self.board.graph[state] #on selection les case rejoignable de la case actuelle
-
+            
             #Si il n y a qu'une case joignable
-            if len(nextState) == 1:
+            if state != 3:
 
                 #ici on calcule l'équation si on devait choisir le dé sécurité
-                nextV , nextDice, tourTotal= self.V(nextState[0], tour)
+                nextV , nextDice, tourTotal= self.V(self.movement.calculateNextPosition(state,1,False), tour)
                 valueDice1 = 1 + nextV/2
 
 
@@ -65,8 +64,8 @@ class Game:
 
                     #Puis on clacul l'équation so on devait choisir le dé normal
                     
-                    nextV, nextDice, tourA = self.V(nextState[0],tour)
-                    nextNextV, nextNextDice, tourB = self.V(self.board.graph[nextState[0]][0],tour)
+                    nextV, nextDice, tourA = self.V(self.movement.calculateNextPosition(state,1,False),tour)
+                    nextNextV, nextNextDice, tourB = self.V(self.movement.calculateNextPosition(state,1,False),tour)
                     #On calcul le nombre de tour minimum possible entre les 2 chemins.
                     tourTotal = self.minTour(tourA, tourB)
                     valueDice2 = 1 + nextV/3 + nextNextV/3
@@ -76,19 +75,19 @@ class Game:
 
 
             #Si il y a 2 case joignabe ( par exemple sur la case 3 on peut joindre 4 et 11)
-            elif len(nextState) == 2:
+            else:
 
                 #on calcul donc une première fois pour le premier chemin.
 
                 #ici on calcule l'équation si on devait choisir le dé sécurité
-                nextV , nextDice, tourTotal1= self.V(nextState[0], tour)
+                nextV , nextDice, tourTotal1= self.V(self.movement.calculateNextPosition(state,1,False), tour)
                 valueDice1 = 1 + nextV/2
 
                 # cas particulier si on est sur la case 10 ou 14, donc une case avant la case finale
                 #Si on modifie le graphe en rajoutant 15:[15] ou 15:[1] alors on peut virer les 2 conditions suivantes
                 
-                nextV , nextDice, tourA= self.V(nextState[0], tour)
-                nextNextV, nextNextDice, tourB = self.V(self.board.graph[nextState[0]][0], tour)
+                nextV , nextDice, tourA= self.V(self.movement.calculateNextPosition(state,1,False), tour)
+                nextNextV, nextNextDice, tourB = self.V(self.movement.calculateNextPosition(state,1,False), tour)
                 #On calcul le nombre de tour minimum possible entre les 2 chemins.
                 tourTotal1 = self.minTour(tourA,tourB)
                 valueDice2 = 1 + nextV/3 + nextNextV/3
@@ -101,14 +100,14 @@ class Game:
 
 
                 #ici on calcule l'équation si on devait choisir le dé sécurité
-                nextV , nextdice, tourTotal2= self.V(nextState[0], tour)
+                nextV , nextdice, tourTotal2= self.V(self.movement.calculateNextPosition(state,1,False), tour)
                 valuedice1 = 1 + nextV/2
 
                 # cas particulier si on est sur la case 10 ou 14, donc une case avant la case finale
                 #Si on modifie le graphe en rajoutant 15:[15] ou 15:[1] alors on peut virer les 2 conditions suivantes
                 
-                nextV , nextdice, tour2A= self.V(nextState[0], tour)
-                nextnextV, nextnextdice, tour2B = self.V(self.board.graph[nextState[0]][0], tour)
+                nextV , nextdice, tour2A= self.V(self.movement.calculateNextPosition(state,1,False), tour)
+                nextnextV, nextnextdice, tour2B = self.V(self.movement.calculateNextPosition(state,1,False), tour)
                 #On calcul le nombre de tour minimum possible entre les 2 chemins.
                 tourTotal2= self.minTour(tour2A,tour2B)
                 valuedice2 = 1 + nextV/3 + nextnextV/3
@@ -200,17 +199,11 @@ class Movement:
 
     #probabilité = 0.5
     def throwSecurityDice(self):
-        if self.frozen == True :
-            self.frozen = False
-            return
         self.move(rd.randint(0,1))
         return
 
     #probability = 0.333..
     def throwNormalDice(self):
-        if self.frozen == True :
-            self.frozen = False
-            return
         self.move(rd.randint(0,2))
         self.checkForTraps()
         return
@@ -240,15 +233,25 @@ class Movement:
         return
 
     def move(self, nbrMv):
+        if self.frozen == True :
+            self.frozen = False
+            return
         if self.player.position == 3 and nbrMv > 0:
             self.player.position = self.board.graph[3][rd.randint(0,1)]
             nbrMv -= 1
 
         for i in range(0,nbrMv):
-            self.player.position = self.board.graph[self.player.position]
+            if self.player.position == 3:
+                self.player.position = self.board.graph[self.player.position][0]
+            else:
+                self.player.position = self.board.graph[self.player.position]
         return
 
-    def calculateNextPosition(self, nbrMv, takeShorcut):
+    def calculateNextPosition(self, state, nbrMv, takeShorcut):
+        self.player.position = state
+        if self.frozen == True :
+            self.frozen = False
+            return
         if self.player.position == 3 and nbrMv > 0:
             if takeShorcut:
                 self.player.position = self.board.graph[3][1]
@@ -257,8 +260,11 @@ class Movement:
             nbrMv -= 1
             
         for i in range(0,nbrMv):
-            self.player.position = self.board.graph[self.player.position]
-        return
+            if self.player.position == 3:
+                self.player.position = self.board.graph[self.player.position][0][0]
+            else:
+                self.player.position = self.board.graph[self.player.position][0]
+        return self.player.position
 
 if __name__ == "__main__":
     a = Game()
