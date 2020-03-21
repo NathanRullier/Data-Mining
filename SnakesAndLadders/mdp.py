@@ -34,55 +34,97 @@ class Game:
         else:
             return b, valueB, tour2
 
+    #fonction V qui retourne la valeur de Belleman,
+    # state represent la case surlaquelle on se trouve
+    # tour compte le nombre d'iteration
+    #la fonction retourne dans l'ordre: la valeur calculé, le dé choisit, et le coût en nombre de tour
     def V(self, state, tour):
-        if state == 15:
-            return 0, 1, tour
 
+        #CHeck si la case actuelle est la case finale
+        if state == 15:
+            return 0, 1, tour # La valeur V vaut 0 sur la case finale, le choix du dé n'a ici pas d'importance, et le nombre de tour.
+
+        #Si on est sur une autre case
         else:
-            tour = tour +1
-            nextState = self.board.graph[state]
+            tour = tour +1  #on itere d'abord le nombre de tour
+            nextState = self.board.graph[state] #on selection les case rejoignable de la case actuelle
+
+            #Si il n y a qu'une case joignable
             if len(nextState) == 1:
+
+                #ici on calcule l'équation si on devait choisir le dé sécurité
                 nextV , nextdice, tourTotal= self.V(nextState[0], tour)
                 valuedice1 = 1 + nextV/2
 
+
+                # cas particulier si on est sur la case 10 ou 14, donc une case avant la case finale
+                #Si on modifie le graphe en rajoutant 15:[15] ou 15:[1] alors on peut virer les 2 conditions suivantes
                 if state == 10:
                     valuedice2 = 1
                 else:
                     if state == 14:
                         valuedice2 = 1
+
+                    #Puis on clacul l'équation so on devait choisir le dé normal
                     else:
                       nextV , nextdice, tourA= self.V(nextState[0],tour)
                       nextnextV, nextnextdice, tourB = self.V(self.board.graph[nextState[0]][0],tour)
+                      #On calcul le nombre de tour minimum possible entre les 2 chemins.
                       tourTotal = self.minTour(tourA, tourB)
                       valuedice2 = 1 + nextV/3 + nextnextV/3
 
+                #On selection le dé qui possède la plus petite valeure entre les 2 calculées juste avant
                 a, dice = self.min(valuedice1, valuedice2)
 
+
+            #Si il y a 2 case joignabe ( par exemple sur la case 3 on peut joindre 4 et 11)
             if len(nextState) == 2:
+
+                #on calcul donc une première fois pour le premier chemin.
+
+                #ici on calcule l'équation si on devait choisir le dé sécurité
                 nextV , nextdice, tourTotal1= self.V(nextState[0], tour)
                 valuedice1 = 1 + nextV/2
+
+                # cas particulier si on est sur la case 10 ou 14, donc une case avant la case finale
+                #Si on modifie le graphe en rajoutant 15:[15] ou 15:[1] alors on peut virer les 2 conditions suivantes
                 if state == 14:
                     valuedice2 = 1
                 else:
                     nextV , nextdice, tourA= self.V(nextState[0], tour)
                     nextnextV, nextnextdice, tourB = self.V(self.board.graph[nextState[0]][0], tour)
+                    #On calcul le nombre de tour minimum possible entre les 2 chemins.
                     tourTotal1 = self.minTour(tourA,tourB)
                     valuedice2 = 1 + nextV/3 + nextnextV/3
 
+                #On selection le dé qui possède la plus petite valeure entre les 2 calculées juste avant
                 a1, diceFirst = self.min(valuedice1, valuedice2)
 
+
+                #on calcul ensuite pour le 2ieme chemin possible
+
+
+                #ici on calcule l'équation si on devait choisir le dé sécurité
                 nextV , nextdice, tourTotal2= self.V(nextState[0], tour)
                 valuedice1 = 1 + nextV/2
+
+                # cas particulier si on est sur la case 10 ou 14, donc une case avant la case finale
+                #Si on modifie le graphe en rajoutant 15:[15] ou 15:[1] alors on peut virer les 2 conditions suivantes
                 if state == 14:
                     valuedice2 = 1
                 else:
                     nextV , nextdice, tour2A= self.V(nextState[0], tour)
                     nextnextV, nextnextdice, tour2B = self.V(self.board.graph[nextState[0]][0], tour)
+                    #On calcul le nombre de tour minimum possible entre les 2 chemins.
                     tourTotal2= self.minTour(tour2A,tour2B)
                     valuedice2 = 1 + nextV/3 + nextnextV/3
 
+                #On selection le dé qui possède la plus petite valeure entre les 2 calculées juste avant
                 a2, diceSecond = self.min(valuedice1, valuedice2)
 
+
+
+                #Ici on sélection le chemin qui possède la plus petite valeure
                 a, dice, tourTotal= self.minValue(a1, diceFirst,a2, diceSecond, tourTotal1, tourTotal2)
 
             return a, dice, tourTotal
@@ -92,9 +134,9 @@ class Game:
 
     def markovDecision(self, layout, circle):
 
-        arrayExpected = []
-        arrayDice = []
-        arrayV=[]
+        arrayExpected = [] #liste du cout
+        arrayDice = [] #list du choix de dé
+        arrayV=[] #list de la valeur V
 
         for i in range(1,15):
             value, dice, tour = self.V(i, 0)
@@ -102,12 +144,6 @@ class Game:
             arrayDice.append(dice)
             arrayV.append(value)
 
-        print("dice")
-        print(arrayDice)
-        print("number of expected tour")
-        print(arrayExpected)
-        print("value of Markov equation")
-        print(arrayV)
         Expect = np.array(arrayExpected);
         Dice = np.array(arrayDice);
         markovDecisionsList = [Expect,Dice]
