@@ -39,7 +39,7 @@ class Game:
     # tour compte le nombre d'iteration
     #la fonction retourne dans l'ordre: la valeur calculé, le dé choisit, et le coût en nombre de tour
     def V(self, state, tour):
-
+        tourTotal = 0
         #CHeck si la case actuelle est la case finale
         if state == 15 or tour > 10:
             return 0, 1, tour # La valeur V vaut 0 sur la case finale, le choix du dé n'a ici pas d'importance, et le nombre de tour.
@@ -52,23 +52,20 @@ class Game:
             if state != 3:
 
                 #ici on calcule l'équation si on devait choisir le dé sécurité
-                nextV , nextDice, tourTotal= self.V(self.movement.calculateNextPosition(state,1,False,True), tour)
-                valueDice1 = 1 + nextV/2
+                currentV, currentDice, currentTour = self.V(self.movement.calculateNextPosition(state,0,False,True), tour)
+                nextV , nextDice, nextTour = self.V(self.movement.calculateNextPosition(state,1,False,True), tour)
+                valueDice1 = 1 + currentV/2 + nextV/2 
 
 
                 # cas particulier si on est sur la case 10 ou 14, donc une case avant la case finale
                 #Si on modifie le graphe en rajoutant 15:[15] ou 15:[1] alors on peut virer les 2 conditions suivantes
-                if state == 10 or state == 14:
-                    valueDice2 = 1
-                else :
-
-                    #Puis on clacul l'équation so on devait choisir le dé normal
-                    
-                    nextV, nextDice, tourA = self.V(self.movement.calculateNextPosition(state,1,False,False),tour)
-                    nextNextV, nextNextDice, tourB = self.V(self.movement.calculateNextPosition(state,2,False,False),tour)
-                    #On calcul le nombre de tour minimum possible entre les 2 chemins.
-                    tourTotal = self.minTour(tourA, tourB)
-                    valueDice2 = 1 + nextV/3 + nextNextV/3
+                #Puis on clacul l'équation so on devait choisir le dé normal
+                currentV, currentDice, currentTour = self.V(self.movement.calculateNextPosition(state,0,False,True), tour)
+                nextV, nextDice, tourA = self.V(self.movement.calculateNextPosition(state,1,False,False),tour)
+                nextNextV, nextNextDice, tourB = self.V(self.movement.calculateNextPosition(state,2,False,False),tour)
+                #On calcul le nombre de tour minimum possible entre les 2 chemins.
+                tourTotal = self.minTour(tourA, tourB)
+                valueDice2 = 1 + currentV/3 + nextV/3 + nextNextV/3
 
                 #On selection le dé qui possède la plus petite valeure entre les 2 calculées juste avant
                 valueDice, dice = self.min(valueDice1, valueDice2)
