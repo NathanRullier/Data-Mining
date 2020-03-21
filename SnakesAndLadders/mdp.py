@@ -2,6 +2,7 @@ import numpy as np
 import random as rd
 
 
+
 class Game:
 
     board = None
@@ -100,7 +101,7 @@ class Game:
             arrayExpected.append(tour)
             arrayDice.append(dice)
             arrayV.append(value)
-            
+
         print("dice")
         print(arrayDice)
         print("number of expected tour")
@@ -110,6 +111,13 @@ class Game:
         Expect = np.array(arrayExpected);
         Dice = np.array(arrayDice);
         markovDecisionsList = [Expect,Dice]
+
+        print("dice")
+        print(Dice)
+        print("number of expected tour")
+        print(Expect)
+        print("value of Markov equation")
+        print(arrayV)
 
         return markovDecisionsList
 
@@ -131,17 +139,17 @@ class Board:
              13: [14],
              14: [15]}
 
-    def __init__(self, nbrTraps,typeOfTraps):
+    def __init__(self, nbrTraps, typeOfTraps):
         self.layout = np.zeros(15)
-        self.generateLayout(nbrTraps,typeOfTraps)
+        self.generateLayout(nbrTraps, typeOfTraps)
 
     def generateLayout(self, nbrTraps,typeOfTraps):
-        for i in range(0,nbrTraps):
+        for i in range(0, nbrTraps):
             rdPos = rd.randint(1,13)
-            while layout[rdPos] != 0 :
+            while self.layout[rdPos] != 0 :
                 ++rdPos
 
-            layout[rdPos]= typeOfTraps
+            self.layout[rdPos]= typeOfTraps
         return
 
 class Traps :
