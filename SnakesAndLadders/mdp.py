@@ -11,7 +11,7 @@ class Game:
     player = None
 
     def __init__(self):
-        self.board = Board(0, 0)
+        self.board = Board(10, 1)
         self.player = Player()
         self.movement = Movement(self.player, self.board)
         self.markovDecision(self.board.layout, self.circle)
@@ -41,7 +41,7 @@ class Game:
     def V(self, state, tour):
 
         #CHeck si la case actuelle est la case finale
-        if state == 15:
+        if state == 15 or tour > 10:
             return 0, 1, tour # La valeur V vaut 0 sur la case finale, le choix du dé n'a ici pas d'importance, et le nombre de tour.
 
         #Si on est sur une autre case
@@ -52,7 +52,7 @@ class Game:
             if state != 3:
 
                 #ici on calcule l'équation si on devait choisir le dé sécurité
-                nextV , nextDice, tourTotal= self.V(self.movement.calculateNextPosition(state,1,False), tour)
+                nextV , nextDice, tourTotal= self.V(self.movement.calculateNextPosition(state,1,False,True), tour)
                 valueDice1 = 1 + nextV/2
 
 
@@ -64,8 +64,8 @@ class Game:
 
                     #Puis on clacul l'équation so on devait choisir le dé normal
                     
-                    nextV, nextDice, tourA = self.V(self.movement.calculateNextPosition(state,1,False),tour)
-                    nextNextV, nextNextDice, tourB = self.V(self.movement.calculateNextPosition(state,1,False),tour)
+                    nextV, nextDice, tourA = self.V(self.movement.calculateNextPosition(state,1,False,False),tour)
+                    nextNextV, nextNextDice, tourB = self.V(self.movement.calculateNextPosition(state,2,False,False),tour)
                     #On calcul le nombre de tour minimum possible entre les 2 chemins.
                     tourTotal = self.minTour(tourA, tourB)
                     valueDice2 = 1 + nextV/3 + nextNextV/3
@@ -80,14 +80,14 @@ class Game:
                 #on calcul donc une première fois pour le premier chemin.
 
                 #ici on calcule l'équation si on devait choisir le dé sécurité
-                nextV , nextDice, tourTotal1= self.V(self.movement.calculateNextPosition(state,1,False), tour)
+                nextV , nextDice, tourTotal1= self.V(self.movement.calculateNextPosition(state,1,False,True), tour)
                 valueDice1 = 1 + nextV/2
 
                 # cas particulier si on est sur la case 10 ou 14, donc une case avant la case finale
                 #Si on modifie le graphe en rajoutant 15:[15] ou 15:[1] alors on peut virer les 2 conditions suivantes
                 
-                nextV , nextDice, tourA= self.V(self.movement.calculateNextPosition(state,1,False), tour)
-                nextNextV, nextNextDice, tourB = self.V(self.movement.calculateNextPosition(state,1,False), tour)
+                nextV , nextDice, tourA= self.V(self.movement.calculateNextPosition(state,1,False,False), tour)
+                nextNextV, nextNextDice, tourB = self.V(self.movement.calculateNextPosition(state,2,False,False), tour)
                 #On calcul le nombre de tour minimum possible entre les 2 chemins.
                 tourTotal1 = self.minTour(tourA,tourB)
                 valueDice2 = 1 + nextV/3 + nextNextV/3
@@ -100,17 +100,17 @@ class Game:
 
 
                 #ici on calcule l'équation si on devait choisir le dé sécurité
-                nextV , nextdice, tourTotal2= self.V(self.movement.calculateNextPosition(state,1,False), tour)
+                nextV , nextDice, tourTotal2= self.V(self.movement.calculateNextPosition(state,1,True,True), tour)
                 valuedice1 = 1 + nextV/2
 
                 # cas particulier si on est sur la case 10 ou 14, donc une case avant la case finale
                 #Si on modifie le graphe en rajoutant 15:[15] ou 15:[1] alors on peut virer les 2 conditions suivantes
                 
-                nextV , nextdice, tour2A= self.V(self.movement.calculateNextPosition(state,1,False), tour)
-                nextnextV, nextnextdice, tour2B = self.V(self.movement.calculateNextPosition(state,1,False), tour)
+                nextV , nextdice, tour2A= self.V(self.movement.calculateNextPosition(state,1,True,False), tour)
+                nextNextV, nextNextdice, tour2B = self.V(self.movement.calculateNextPosition(state, 2 ,True,False), tour)
                 #On calcul le nombre de tour minimum possible entre les 2 chemins.
                 tourTotal2= self.minTour(tour2A,tour2B)
-                valuedice2 = 1 + nextV/3 + nextnextV/3
+                valuedice2 = 1 + nextV/3 + nextNextV/3
 
                 #On selection le dé qui possède la plus petite valeure entre les 2 calculées juste avant
                 a2, diceSecond = self.min(valuedice1, valuedice2)
@@ -137,10 +137,11 @@ class Game:
             arrayDice.append(dice)
             arrayV.append(value)
 
-        Expect = np.array(arrayExpected);
-        Dice = np.array(arrayDice);
+        Expect = np.array(arrayExpected)
+        Dice = np.array(arrayDice)
         markovDecisionsList = [Expect,Dice]
-
+        print("layout")
+        print(self.board.layout)
         print("dice")
         print(Dice)
         print("number of expected tour")
@@ -166,7 +167,8 @@ class Board:
              11: [12],
              12: [13],
              13: [14],
-             14: [15]}
+             14: [15],
+             15: [15]}
 
     def __init__(self, nbrTraps, typeOfTraps):
         self.layout = np.zeros(15)
@@ -210,7 +212,7 @@ class Movement:
 
     def checkForTraps(self):
 
-        trapType = self.board.layout[self.player.position]
+        trapType = self.board.layout[self.player.position-1]
 
         if trapType == 4:
             trapType = rd.randint(1,3)
@@ -218,12 +220,12 @@ class Movement:
         if trapType == 0:
             return
         elif trapType == 1:
-            self.player.position = 0
+            self.player.position = 1
             return
         elif trapType == 2:
             self.player.position-=3
-            if self.player.position < 0:
-                self.player.position = 0
+            if self.player.position < 1:
+                self.player.position = 1
             return
         elif trapType == 3:
             self.frozen
@@ -247,7 +249,7 @@ class Movement:
                 self.player.position = self.board.graph[self.player.position]
         return
 
-    def calculateNextPosition(self, state, nbrMv, takeShorcut):
+    def calculateNextPosition(self, state, nbrMv, takeShorcut, isSecurityDice):
         self.player.position = state
         if self.frozen == True :
             self.frozen = False
@@ -261,9 +263,13 @@ class Movement:
             
         for i in range(0,nbrMv):
             if self.player.position == 3:
-                self.player.position = self.board.graph[self.player.position][0][0]
+                self.player.position = self.board.graph[self.player.position][0]
             else:
                 self.player.position = self.board.graph[self.player.position][0]
+            
+        if isSecurityDice == False:
+            self.checkForTraps()
+        
         return self.player.position
 
 if __name__ == "__main__":
