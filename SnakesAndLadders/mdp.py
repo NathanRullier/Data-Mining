@@ -51,10 +51,10 @@ class Game:
                     if state == 14:
                         valuedice2 = 1
                     else:
-                      nextV , nextdice, tourA= self.V(nextState[0],tour)
-                      nextnextV, nextnextdice, tourB = self.V(self.board.graph[nextState[0]][0],tour)
-                      tourTotal = self.minTour(tourA, tourB)
-                      valuedice2 = 1 + nextV/3 + nextnextV/3
+                        nextV , nextdice, tourA= self.V(nextState[0],tour)
+                        nextnextV, nextnextdice, tourB = self.V(self.board.graph[nextState[0]][0],tour)
+                        tourTotal = self.minTour(tourA, tourB)
+                        valuedice2 = 1 + nextV/3 + nextnextV/3
 
                 a, dice = self.min(valuedice1, valuedice2)
 
@@ -108,8 +108,8 @@ class Game:
         print(arrayExpected)
         print("value of Markov equation")
         print(arrayV)
-        Expect = np.array(arrayExpected);
-        Dice = np.array(arrayDice);
+        Expect = np.array(arrayExpected)
+        Dice = np.array(arrayDice)
         markovDecisionsList = [Expect,Dice]
 
         print("dice")
@@ -147,13 +147,13 @@ class Board:
         for i in range(0, nbrTraps):
             rdPos = rd.randint(1,13)
             while self.layout[rdPos] != 0 :
-                ++rdPos
+                rdPos+=1
 
             self.layout[rdPos]= typeOfTraps
         return
 
 class Traps :
-    typeOfTrap = 0;
+    typeOfTrap = 0
 
 class Player :
     position = 0
@@ -211,13 +211,24 @@ class Movement:
 
     def move(self, nbrMv):
         if self.player.position == 3 and nbrMv > 0:
-            self.board.graph[3[rd.randint(0,1)]]
-            --nbrMv
+            self.player.position = self.board.graph[3][rd.randint(0,1)]
+            nbrMv -= 1
 
         for i in range(0,nbrMv):
             self.player.position = self.board.graph[self.player.position]
         return
 
+    def calculateNextPosition(self, nbrMv, takeShorcut):
+        if self.player.position == 3 and nbrMv > 0:
+            if takeShorcut:
+                self.player.position = self.board.graph[3][1]
+            else:
+                self.player.position = self.board.graph[3][0]
+            nbrMv -= 1
+            
+        for i in range(0,nbrMv):
+            self.player.position = self.board.graph[self.player.position]
+        return
 
 if __name__ == "__main__":
     a = Game()
