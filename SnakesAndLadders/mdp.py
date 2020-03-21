@@ -11,7 +11,7 @@ class Game:
     player = None
 
     def __init__(self):
-        self.board = Board(10, 1)
+        self.board = Board(0, 0)
         self.player = Player()
         self.movement = Movement(self.player, self.board)
         self.markovDecision(self.board.layout, self.circle)
@@ -243,10 +243,7 @@ class Movement:
             nbrMv -= 1
 
         for i in range(0,nbrMv):
-            if self.player.position == 3:
                 self.player.position = self.board.graph[self.player.position][0]
-            else:
-                self.player.position = self.board.graph[self.player.position]
         return
 
     def calculateNextPosition(self, state, nbrMv, takeShorcut, isSecurityDice):
@@ -262,11 +259,7 @@ class Movement:
             nbrMv -= 1
             
         for i in range(0,nbrMv):
-            if self.player.position == 3:
                 self.player.position = self.board.graph[self.player.position][0]
-            else:
-                self.player.position = self.board.graph[self.player.position][0]
-            
         if isSecurityDice == False:
             self.checkForTraps()
         
