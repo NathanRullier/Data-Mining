@@ -51,69 +51,15 @@ class Game:
             
             #Si il n y a qu'une case joignable
             if state != 3:
-                #ici on calcule l'équation si on devait choisir le dé sécurité
-                #currentV, currentDice = self.V(self.movement.calculateNextPosition(state,0,False,True), turn)
-                #nextV , nextDice = self.V(self.movement.calculateNextPosition(state,1,False,True), turn)
                 valueDice1 = 1 + self.arrayExpected[self.movement.calculateNextPosition(state,0,False,True)]/2 + self.arrayExpected[self.movement.calculateNextPosition(state,1,False,True)]/2
-
-
-                # cas particulier si on est sur la case 10 ou 14, donc une case avant la case finale
-                #Si on modifie le graphe en rajoutant 15:[15] ou 15:[1] alors on peut virer les 2 conditions suivantes
-                #Puis on clacul l'équation so on devait choisir le dé normal
-                #currentV, currentDice = self.V(self.movement.calculateNextPosition(state,0,False,True), turn)
-                #nextV, nextDice = self.V(self.movement.calculateNextPosition(state,1,False,False),turn)
-                #nextNextV, nextNextDice = self.V(self.movement.calculateNextPosition(state,2,False,False),turn)
-                #On calcul le nombre de turn minimum possible entre les 2 chemins.
                 valueDice2 = 1 + self.arrayExpected[self.movement.calculateNextPosition(state,0,False,False)]/3 + self.arrayExpected[self.movement.calculateNextPosition(state,1,False,False)]/3 + self.arrayExpected[self.movement.calculateNextPosition(state,2,False,False)]/3
-
-                #On selection le dé qui possède la plus petite valeure entre les 2 calculées juste avant
                 minV, dice = self.min(valueDice1, valueDice2)
 
-
-            #Si il y a 2 case joignabe ( par exemple sur la case 3 on peut joindre 4 et 11)
             else:
 
-                #on calcul donc une première fois pour le premier chemin.
-
-                #ici on calcule l'équation si on devait choisir le dé sécurité
-                #currentV, currentDice = self.V(self.movement.calculateNextPosition(state,0,False,True), turn)
-                #nextV , nextDice = self.V(self.movement.calculateNextPosition(state,1,False,True), turn)
                 valueDice1 = 1 + self.arrayExpected[self.movement.calculateNextPosition(state,0,False,True)]/4 + self.arrayExpected[self.movement.calculateNextPosition(state,1,False,True)]/4 + self.arrayExpected[self.movement.calculateNextPosition(state,0,True,True)]/4 + self.arrayExpected[self.movement.calculateNextPosition(state,1,True,True)]/4 
-
-                # cas particulier si on est sur la case 10 ou 14, donc une case avant la case finale
-                #Si on modifie le graphe en rajoutant 15:[15] ou 15:[1] alors on peut virer les 2 conditions suivantes
-                #currentV, currentDice = self.V(self.movement.calculateNextPosition(state,0,False,False), turn)
-                #nextV, nextDice = self.V(self.movement.calculateNextPosition(state,1,False,False), turn)
-                #nextNextV, nextNextDice = self.V(self.movement.calculateNextPosition(state,2,False,False), turn)
-                #On calcul le nombre de turn minimum possible entre les 2 chemins.
                 valueDice2 = 1 + self.arrayExpected[self.movement.calculateNextPosition(state,0,True,False)]/6 + self.arrayExpected[self.movement.calculateNextPosition(state,1,True,False)]/6 + self.arrayExpected[self.movement.calculateNextPosition(state,2,True,False)]/6 + self.arrayExpected[self.movement.calculateNextPosition(state,0,False,False)]/6 + self.arrayExpected[self.movement.calculateNextPosition(state,1,False,False)]/6 + self.arrayExpected[self.movement.calculateNextPosition(state,2,False,False)]/6
-                #On selection le dé qui possède la plus petite valeure entre les 2 calculées juste avant
-                #a1, diceFirst = self.min(valueDice1, valueDice2)
-
-
-                #on calcul ensuite pour le 2ieme chemin possible
-
-
-                #ici on calcule l'équation si on devait choisir le dé sécurité
-                #currentV , currentDice = self.V(self.movement.calculateNextPosition(state,0,True,True), turn)
-                #nextV , nextDice = self.V(self.movement.calculateNextPosition(state,1,True,True), turn)
-                #valuedice1 = 1 + currentV/2 + nextV/2
-
-                # cas particulier si on est sur la case 10 ou 14, donc une case avant la case finale
-                #Si on modifie le graphe en rajoutant 15:[15] ou 15:[1] alors on peut virer les 2 conditions suivantes
-                #currentV , currentDice = self.V(self.movement.calculateNextPosition(state,0,True,False), turn)
-                #nextV , nextdice = self.V(self.movement.calculateNextPosition(state,1,True,False), turn)
-                #nextNextV, nextNextdice = self.V(self.movement.calculateNextPosition(state, 2 ,True,False), turn)
-                #On calcul le nombre de turn minimum possible entre les 2 chemins.
-                #valuedice2 = 1 + currentV/3 + nextV/3 + nextNextV/3
-
-                #On selection le dé qui possède la plus petite valeure entre les 2 calculées juste avant
                 minV, dice = self.min(valueDice1, valueDice2)
-
-
-
-                #Ici on sélection le chemin qui possède la plus petite valeure
-                #minV, dice = self.minValue(a1, diceFirst,a2, diceSecond)
 
             return minV, dice
 
