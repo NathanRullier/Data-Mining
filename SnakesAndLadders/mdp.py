@@ -6,14 +6,14 @@ import random as rd
 class Game:
 
     board = None
-    circle = False
+    circle = True
     movement = None
     player = None
     arrayExpected = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] #list of cost
     arrayDice = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] #list of dice choice
 
     def __init__(self):
-        self.board = Board(13, 3)
+        self.board = Board(0, 0)
         self.player = Player()
         self.movement = Movement(self.player, self.board)
         self.markovDecision(self.board.layout, self.circle)
@@ -54,6 +54,7 @@ class Game:
 
             return minV, dice
 
+    #returns the value at a certain state
     def calculateValue(self, state, takeShorcut, isSecurityDice):
         value = 1
         if isSecurityDice:
@@ -61,6 +62,7 @@ class Game:
         else:
             diceRange = 3
         for i in range(0, diceRange):
+            tempFrozen = False
             tempFrozen, tempPosition = self.movement.calculateNextPosition(state, i, takeShorcut, isSecurityDice)
             value += self.arrayExpected[tempPosition]/diceRange
             if tempFrozen:
@@ -69,7 +71,8 @@ class Game:
         return value
         
 
-
+    #returns the optimal decisions and their theoretical cost
+    #needs a layout and if the board is circular or not
     def markovDecision(self, layout, circle):
         #sets the graph to be circular or not
         if circle:
@@ -78,6 +81,7 @@ class Game:
             self.board.graph[15] = [15]
 
         self.board.layout = layout
+
         
         #iterates trough the values to arrive to a converging function
         for _ in range(1, 1000):
@@ -211,6 +215,7 @@ class Movement:
 
     #calculates where the player will end up
     def calculateNextPosition(self, state, nbrMv, takeShorcut, isSecurityDice):
+        self.frozen = False
         self.player.position = state
         if self.player.position == 3 and nbrMv > 0:
             if takeShorcut:
