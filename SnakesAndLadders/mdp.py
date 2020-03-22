@@ -29,7 +29,7 @@ class Game:
     #turn counts the number of iteration
     #the function returns in order:
     #   The chosen dice and the estimated cost in number of turn in the form of V
-    def V(self, state, turn):
+    def V(self, state):
         #CHeck si la case actuelle est la case finale
         isFreeze = self.board.layout[state] == 3
         moveCost = 1
@@ -38,12 +38,10 @@ class Game:
         if state == 15:
             return 0, 1 #The value of V is zero on the last case and the rest doesn't matter
 
-        #Si on est sur une autre case
+        #For any other case
         else:
-            turn += 1 #on itere d'abord le nombre de turn
 
-            #Si il n y a qu'une case joignable
-            if state != 3:
+            if state != 3: #If there is only one accessible way
                 valueDice1 = moveCost\
                 + self.arrayExpected[self.movement.calculateNextPosition(state, 0, False, True)]/2\
                 + self.arrayExpected[self.movement.calculateNextPosition(state, 1, False, True)]/2
@@ -55,7 +53,7 @@ class Game:
 
                 minV, dice = self.minDice(valueDice1, valueDice2)
 
-            else:
+            else:#If there is more than one accessible way
                 valueDice1 = moveCost\
                 + self.arrayExpected[self.movement.calculateNextPosition(state, 0, False, True)]/4\
                 + self.arrayExpected[self.movement.calculateNextPosition(state, 1, False, True)]/4\
@@ -78,28 +76,32 @@ class Game:
 
 
     def markovDecision(self, layout, circle):
-
+        #sets the graph to be circular or not
         if circle:
             self.board.graph[15] = [1]
         else:
             self.board.graph[15] = [15]
 
         self.board.layout = layout
-
+        
+        #iterates trough the values to arrive to a converging function
         for _ in range(1, 1000):
             for i in range(1, 15):
-                value, dice = self.V(i, 0)
+                value, dice = self.V(i)
                 self.arrayDice[i] = dice
                 self.arrayExpected[i] = value
 
+        #modifies the array to be the demanded form
         self.arrayExpected.pop(0)
         self.arrayExpected.pop(len(self.arrayExpected)-1)
         Expect = np.array(self.arrayExpected)
 
+        #modifies the array to be the demanded form
         self.arrayDice.pop(0)
         self.arrayDice.pop(len(self.arrayDice)-1)
         Dice = np.array(self.arrayDice)
 
+        #shows information
         markovDecisionsList = [Expect, Dice]
         print("layout")
         print(self.board.layout)
@@ -112,7 +114,9 @@ class Game:
 
 class Board:
 
+    #value of all the cases
     layout = np.ndarray([])
+    #graph shows how to move on the board
     graph = {1: [2],
              2: [3],
              3: [4, 11],
@@ -132,6 +136,7 @@ class Board:
         self.layout = np.zeros(15)
         self.generateLayout(nbrTraps, typeOfTraps)
 
+    #generates traps randomly
     def generateLayout(self, nbrTraps, typeOfTraps):
         for _ in range(0, nbrTraps):
             rdPos = rd.randint(1, 13)
@@ -141,9 +146,11 @@ class Board:
             self.layout[rdPos] = typeOfTraps
         return
 
+#only has position for better clarity
 class Player:
     position = 0
 
+#in charge of the movement of the player
 class Movement:
 
     player = None
@@ -154,7 +161,7 @@ class Movement:
         self.player = player
         self.board = board
 
-    #probabilité = 0.5
+    #probability = 0.5
     def throwSecurityDice(self):
         self.move(rd.randint(0, 1))
         return
@@ -165,6 +172,7 @@ class Movement:
         self.checkForTraps()
         return
 
+    #applies the traps on the player
     def checkForTraps(self):
 
         trapType = self.board.layout[self.player.position-1]
@@ -189,6 +197,7 @@ class Movement:
 
         return
 
+    #makes the player move in a real game
     def move(self, nbrMv):
         if self.frozen == True:
             self.frozen = False
@@ -201,6 +210,7 @@ class Movement:
             self.player.position = self.board.graph[self.player.position][0]
         return
 
+    #calculates where the player will end up
     def calculateNextPosition(self, state, nbrMv, takeShorcut, isSecurityDice):
         self.player.position = state
         if self.player.position == 3 and nbrMv > 0:
