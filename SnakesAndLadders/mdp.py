@@ -230,6 +230,6 @@ class Movement:
             self.checkForTraps()
 
         return self.frozen, self.player.position
-
-if __name__ == "__main__":
-    a = Game()
+    
+def markovDecision(layout, circle):
+    return Game().markovDecision(layout,circle)
