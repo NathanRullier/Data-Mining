@@ -9,9 +9,11 @@ class Game:
     circle = False
     movement = None
     player = None
+    arrayExpected = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] #liste du cout
+    arrayDice = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] #list du choix de dé
 
     def __init__(self):
-        self.board = Board(0, 0)
+        self.board = Board(0,1)
         self.player = Player()
         self.movement = Movement(self.player, self.board)
         self.markovDecision(self.board.layout, self.circle)
@@ -22,53 +24,50 @@ class Game:
         else:
             return b, 2
 
-    def minTour(self,a, b):
+    def minturn(self,a, b):
         if a < b:
             return a
         else:
             return b
 
-    def minValue(self, a, valueA, b, valueB, tour1, tour2):
+    def minValue(self, a, valueA, b, valueB):
         if a < b:
-            return a, valueA, tour1
+            return a, valueA
         else:
-            return b, valueB, tour2
+            return b, valueB
 
-    #fonction V qui retourne la valeur de Belleman,
-    # state represent la case surlaquelle on se trouve
-    # tour compte le nombre d'iteration
-    #la fonction retourne dans l'ordre: la valeur calculé, le dé choisit, et le coût en nombre de tour
-    def V(self, state, tour):
-        tourTotal = 0
+    #function V returns Bellman's value
+    #state represent on which case of the board we are
+    #turn counts the number of iteration
+    #the function returns in order: The chosen dice and the estimated cost in number of turn in the form of V
+    def V(self, state, turn):
         #CHeck si la case actuelle est la case finale
-        if state == 15 or tour > 10:
-            return 0, 1, tour # La valeur V vaut 0 sur la case finale, le choix du dé n'a ici pas d'importance, et le nombre de tour.
+        if state == 15:
+            return 0, 1 # La valeur V vaut 0 sur la case finale, le choix du dé n'a ici pas d'importance, et le nombre de turn.
 
         #Si on est sur une autre case
         else:
-            tour += 1 #on itere d'abord le nombre de tour
+            turn += 1 #on itere d'abord le nombre de turn
             
             #Si il n y a qu'une case joignable
             if state != 3:
-
                 #ici on calcule l'équation si on devait choisir le dé sécurité
-                currentV, currentDice, currentTour = self.V(self.movement.calculateNextPosition(state,0,False,True), tour)
-                nextV , nextDice, nextTour = self.V(self.movement.calculateNextPosition(state,1,False,True), tour)
-                valueDice1 = 1 + currentV/2 + nextV/2 
+                #currentV, currentDice = self.V(self.movement.calculateNextPosition(state,0,False,True), turn)
+                #nextV , nextDice = self.V(self.movement.calculateNextPosition(state,1,False,True), turn)
+                valueDice1 = 1 + self.arrayExpected[self.movement.calculateNextPosition(state,0,False,True)]/2 + self.arrayExpected[self.movement.calculateNextPosition(state,1,False,True)]/2
 
 
                 # cas particulier si on est sur la case 10 ou 14, donc une case avant la case finale
                 #Si on modifie le graphe en rajoutant 15:[15] ou 15:[1] alors on peut virer les 2 conditions suivantes
                 #Puis on clacul l'équation so on devait choisir le dé normal
-                currentV, currentDice, currentTour = self.V(self.movement.calculateNextPosition(state,0,False,True), tour)
-                nextV, nextDice, tourA = self.V(self.movement.calculateNextPosition(state,1,False,False),tour)
-                nextNextV, nextNextDice, tourB = self.V(self.movement.calculateNextPosition(state,2,False,False),tour)
-                #On calcul le nombre de tour minimum possible entre les 2 chemins.
-                tourTotal = self.minTour(tourA, tourB)
-                valueDice2 = 1 + currentV/3 + nextV/3 + nextNextV/3
+                #currentV, currentDice = self.V(self.movement.calculateNextPosition(state,0,False,True), turn)
+                #nextV, nextDice = self.V(self.movement.calculateNextPosition(state,1,False,False),turn)
+                #nextNextV, nextNextDice = self.V(self.movement.calculateNextPosition(state,2,False,False),turn)
+                #On calcul le nombre de turn minimum possible entre les 2 chemins.
+                valueDice2 = 1 + self.arrayExpected[self.movement.calculateNextPosition(state,0,False,False)]/3 + self.arrayExpected[self.movement.calculateNextPosition(state,1,False,False)]/3 + self.arrayExpected[self.movement.calculateNextPosition(state,2,False,False)]/3
 
                 #On selection le dé qui possède la plus petite valeure entre les 2 calculées juste avant
-                valueDice, dice = self.min(valueDice1, valueDice2)
+                minV, dice = self.min(valueDice1, valueDice2)
 
 
             #Si il y a 2 case joignabe ( par exemple sur la case 3 on peut joindre 4 et 11)
@@ -77,75 +76,67 @@ class Game:
                 #on calcul donc une première fois pour le premier chemin.
 
                 #ici on calcule l'équation si on devait choisir le dé sécurité
-                nextV , nextDice, tourTotal1= self.V(self.movement.calculateNextPosition(state,1,False,True), tour)
-                valueDice1 = 1 + nextV/2
+                #currentV, currentDice = self.V(self.movement.calculateNextPosition(state,0,False,True), turn)
+                #nextV , nextDice = self.V(self.movement.calculateNextPosition(state,1,False,True), turn)
+                valueDice1 = 1 + self.arrayExpected[self.movement.calculateNextPosition(state,0,False,True)]/4 + self.arrayExpected[self.movement.calculateNextPosition(state,1,False,True)]/4 + self.arrayExpected[self.movement.calculateNextPosition(state,0,True,True)]/4 + self.arrayExpected[self.movement.calculateNextPosition(state,1,True,True)]/4 
 
                 # cas particulier si on est sur la case 10 ou 14, donc une case avant la case finale
                 #Si on modifie le graphe en rajoutant 15:[15] ou 15:[1] alors on peut virer les 2 conditions suivantes
-                
-                nextV , nextDice, tourA= self.V(self.movement.calculateNextPosition(state,1,False,False), tour)
-                nextNextV, nextNextDice, tourB = self.V(self.movement.calculateNextPosition(state,2,False,False), tour)
-                #On calcul le nombre de tour minimum possible entre les 2 chemins.
-                tourTotal1 = self.minTour(tourA,tourB)
-                valueDice2 = 1 + nextV/3 + nextNextV/3
-
+                #currentV, currentDice = self.V(self.movement.calculateNextPosition(state,0,False,False), turn)
+                #nextV, nextDice = self.V(self.movement.calculateNextPosition(state,1,False,False), turn)
+                #nextNextV, nextNextDice = self.V(self.movement.calculateNextPosition(state,2,False,False), turn)
+                #On calcul le nombre de turn minimum possible entre les 2 chemins.
+                valueDice2 = 1 + self.arrayExpected[self.movement.calculateNextPosition(state,0,True,False)]/6 + self.arrayExpected[self.movement.calculateNextPosition(state,1,True,False)]/6 + self.arrayExpected[self.movement.calculateNextPosition(state,2,True,False)]/6 + self.arrayExpected[self.movement.calculateNextPosition(state,0,False,False)]/6 + self.arrayExpected[self.movement.calculateNextPosition(state,1,False,False)]/6 + self.arrayExpected[self.movement.calculateNextPosition(state,2,False,False)]/6
                 #On selection le dé qui possède la plus petite valeure entre les 2 calculées juste avant
-                a1, diceFirst = self.min(valueDice1, valueDice2)
+                #a1, diceFirst = self.min(valueDice1, valueDice2)
 
 
                 #on calcul ensuite pour le 2ieme chemin possible
 
 
                 #ici on calcule l'équation si on devait choisir le dé sécurité
-                nextV , nextDice, tourTotal2= self.V(self.movement.calculateNextPosition(state,1,True,True), tour)
-                valuedice1 = 1 + nextV/2
+                #currentV , currentDice = self.V(self.movement.calculateNextPosition(state,0,True,True), turn)
+                #nextV , nextDice = self.V(self.movement.calculateNextPosition(state,1,True,True), turn)
+                #valuedice1 = 1 + currentV/2 + nextV/2
 
                 # cas particulier si on est sur la case 10 ou 14, donc une case avant la case finale
                 #Si on modifie le graphe en rajoutant 15:[15] ou 15:[1] alors on peut virer les 2 conditions suivantes
-                
-                nextV , nextdice, tour2A= self.V(self.movement.calculateNextPosition(state,1,True,False), tour)
-                nextNextV, nextNextdice, tour2B = self.V(self.movement.calculateNextPosition(state, 2 ,True,False), tour)
-                #On calcul le nombre de tour minimum possible entre les 2 chemins.
-                tourTotal2= self.minTour(tour2A,tour2B)
-                valuedice2 = 1 + nextV/3 + nextNextV/3
+                #currentV , currentDice = self.V(self.movement.calculateNextPosition(state,0,True,False), turn)
+                #nextV , nextdice = self.V(self.movement.calculateNextPosition(state,1,True,False), turn)
+                #nextNextV, nextNextdice = self.V(self.movement.calculateNextPosition(state, 2 ,True,False), turn)
+                #On calcul le nombre de turn minimum possible entre les 2 chemins.
+                #valuedice2 = 1 + currentV/3 + nextV/3 + nextNextV/3
 
                 #On selection le dé qui possède la plus petite valeure entre les 2 calculées juste avant
-                a2, diceSecond = self.min(valuedice1, valuedice2)
+                minV, dice = self.min(valueDice1, valueDice2)
 
 
 
                 #Ici on sélection le chemin qui possède la plus petite valeure
-                valueDice, dice, tourTotal= self.minValue(a1, diceFirst,a2, diceSecond, tourTotal1, tourTotal2)
+                #minV, dice = self.minValue(a1, diceFirst,a2, diceSecond)
 
-            return valueDice, dice, tourTotal
+            return minV, dice
 
 
 
 
     def markovDecision(self, layout, circle):
+        for j in range(1,1000):
+            for i in range(1,15):
+                value, dice = self.V(i, 0)
+                self.arrayDice[i] = dice
+                self.arrayExpected[i] = value
 
-        arrayExpected = [] #liste du cout
-        arrayDice = [] #list du choix de dé
-        arrayV=[] #list de la valeur V
-
-        for i in range(1,15):
-            value, dice, tour = self.V(i, 0)
-            arrayExpected.append(tour)
-            arrayDice.append(dice)
-            arrayV.append(value)
-
-        Expect = np.array(arrayExpected)
-        Dice = np.array(arrayDice)
+        Expect = np.array(self.arrayExpected)
+        Dice = np.array(self.arrayDice)
         markovDecisionsList = [Expect,Dice]
         print("layout")
         print(self.board.layout)
         print("dice")
         print(Dice)
-        print("number of expected tour")
+        print("number of expected turn")
         print(Expect)
-        print("value of Markov equation")
-        print(arrayV)
-
+        
         return markovDecisionsList
 
 class Board:
@@ -179,9 +170,6 @@ class Board:
 
             self.layout[rdPos]= typeOfTraps
         return
-
-class Traps :
-    typeOfTrap = 0
 
 class Player :
     position = 0
@@ -225,7 +213,7 @@ class Movement:
                 self.player.position = 1
             return
         elif trapType == 3:
-            self.frozen
+            self.frozen = True
             return
 
 
@@ -240,7 +228,7 @@ class Movement:
             nbrMv -= 1
 
         for i in range(0,nbrMv):
-                self.player.position = self.board.graph[self.player.position][0]
+            self.player.position = self.board.graph[self.player.position][0]
         return
 
     def calculateNextPosition(self, state, nbrMv, takeShorcut, isSecurityDice):
@@ -256,7 +244,7 @@ class Movement:
             nbrMv -= 1
             
         for i in range(0,nbrMv):
-                self.player.position = self.board.graph[self.player.position][0]
+            self.player.position = self.board.graph[self.player.position][0]
         if isSecurityDice == False:
             self.checkForTraps()
         
