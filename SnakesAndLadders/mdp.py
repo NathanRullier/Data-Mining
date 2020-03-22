@@ -230,5 +230,7 @@ class Movement:
 
         return self.frozen, self.player.position
 
+
 def markovDecision(layout, circle):
+    a = Game()
     return a.markovDecision(layout,circle)
