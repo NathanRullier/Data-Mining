@@ -78,10 +78,14 @@ class Game:
 
 
     def markovDecision(self, layout, circle):
+
         if circle:
             self.board.graph[15] = [1]
         else:
             self.board.graph[15] = [15]
+
+        self.board.layout = layout
+
         for _ in range(1, 1000):
             for i in range(1, 15):
                 value, dice = self.V(i, 0)
