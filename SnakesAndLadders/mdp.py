@@ -6,147 +6,118 @@ import random as rd
 class Game:
 
     board = None
-    circle = False
+    circle = True
     movement = None
     player = None
-    layout = None
+    arrayExpected = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] #list of cost
+    arrayDice = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] #list of dice choice
 
     def __init__(self):
         self.board = Board(0, 0)
         self.player = Player()
-        self.layout = self.board.layout
         self.movement = Movement(self.player, self.board)
-        self.markovDecision(self.layout, self.circle)
 
-    def min(self,a, b, tourA, tourB):
-        if a < b:
-            return a, 1, tourA
-        else:
-            return b, 2, tourB
+    def minDice(self, value1, value2):
+        if value1 < value2:
+            return value1, 1
+        return value2, 2
 
-    def minValue(self, a, valueA, b, valueB, tour1, tour2):
-        if a < b:
-            return a, valueA, tour1
-        else:
-            return b, valueB, tour2
-
-    #fonction V qui retourne la valeur de Belleman,
-    # state represent la case surlaquelle on se trouve
-    # tour compte le nombre d'iteration
-    #la fonction retourne dans l'ordre: la valeur calculé, le dé choisit, et le coût en nombre de tour
-    def V(self, state, tour):
-        print(state)
+    #function V returns Bellman's value
+    #state represent on which case of the board we are
+    #turn counts the number of iteration
+    #the function returns in order:
+    #   The chosen dice and the estimated cost in number of turn in the form of V
+    def V(self, state):
         #CHeck si la case actuelle est la case finale
         if state == 15:
-            return 0, 1, tour # La valeur V vaut 0 sur la case finale, le choix du dé n'a ici pas d'importance, et le nombre de tour.
+            return 0, 1 #The value of V is zero on the last case and the rest doesn't matter
 
-        #Si on est sur une autre case
+        #For any other case
         else:
-            tour = tour +1  #on itere d'abord le nombre de tour
-            nextState = self.board.graph[state] #on selection les case rejoignable de la case actuelle
 
-            #Si il n y a qu'une case joignable
-            if len(nextState) == 1:
+            if state != 3: #If there is only one accessible way
+                valueDice1 = self.calculateValue(state, False, True)
 
-                #ici on calcule l'équation si on devait choisir le dé sécurité
-                nextV , nextdice, tourTotal1= self.V(nextState[0], tour)
-                valuedice1 = 1 + nextV/2 + tourTotal1/2
+                valueDice2 = self.calculateValue(state, False, False)
 
-                nextV , nextdice, tourA= self.V(nextState[0],tour)
-                nextnextV, nextnextdice, tourB = self.V(self.board.graph[nextState[0]][0], tour)
-                #On calcul le nombre de tour minimum possible entre les 2 chemins.
-                osefValue , osefDice, tourTotal2 = self.min(nextV, nextnextV, tourA,tourB)
-                valuedice2 = 1 + nextV/3 + nextnextV/3 + tourTotal2/3
+                minV, dice = self.minDice(valueDice1, valueDice2)
 
+            else:#If there is more than one accessible way
+                valueDice1 = self.calculateValue(state, False, True)/2\
+                + self.calculateValue(state,True,True)/2
 
-                #On selection le dé qui possède la plus petite valeure entre les 2 calculées juste avant
-                a, dice, tourTotal = self.min(valuedice1, valuedice2, tourTotal1, tourTotal2)
+                valueDice2 = self.calculateValue(state, False, False)/2\
+                + self.calculateValue(state, True, False)/2
 
+                minV, dice = self.minDice(valueDice1, valueDice2)
 
+            return minV, dice
 
+    #returns the value at a certain state
+    def calculateValue(self, state, takeShorcut, isSecurityDice):
+        value = 1
+        if isSecurityDice:
+            diceRange = 2
+        else:
+            diceRange = 3
+        for i in range(0, diceRange):
+            tempFrozen = False
+            tempFrozen, tempPosition = self.movement.calculateNextPosition(state, i, takeShorcut, isSecurityDice)
+            value += self.arrayExpected[tempPosition]/diceRange
+            if tempFrozen:
+                value += 1/diceRange
+        
+        return value
+        
 
-            #Si il y a 2 case joignabe ( par exemple sur la case 3 on peut joindre 4 et 11)
-            if len(nextState) == 2:
-
-                #on calcul donc une première fois pour le premier chemin.
-
-                #ici on calcule l'équation si on devait choisir le dé sécurité
-                nextV , nextdice, tourTotal1= self.V(nextState[0], tour)
-                valuedice1 = 1 + nextV/2 + tourTotal1/2
-
-
-
-                nextV , nextdice, tourA= self.V(nextState[0], tour)
-                nextnextV, nextnextdice, tourB = self.V(self.board.graph[nextState[0]][0], tour)
-                osefValue , osefDice, tourTotal2 = self.min(nextV, nextnextV, tourA,tourB)
-                valuedice2 = 1 + nextV/3 + nextnextV/3 + tourTotal2/3
-
-
-                #On selection le dé qui possède la plus petite valeure entre les 2 calculées juste avant
-                a1, diceFirst, tourfinal1 = self.min(valuedice1, valuedice2, tourA, tourB)
-
-
-                #on calcul ensuite pour le 2ieme chemin possible
-
-
-                #ici on calcule l'équation si on devait choisir le dé sécurité
-                nextV , nextdice, tourTotal1= self.V(nextState[0], tour)
-                valuedice1 = 1 + nextV/2 + tourTotal1/2
-
-                nextV , nextdice, tourA= self.V(nextState[0], tour)
-                nextnextV, nextnextdice, tourB = self.V(self.board.graph[nextState[0]][0], tour)
-                osefValue , osefDice, tourTotal2 = self.min(nextV, nextnextV, tourA,tourB)
-                valuedice2 = 1 + nextV/3 + nextnextV/3 +tourTotal2/3
-
-                #On selection le dé qui possède la plus petite valeure entre les 2 calculées juste avant
-                a2, diceSecond ,tourfinal2= self.min(valuedice1, valuedice2,tourA, tourB)
-
-
-
-                #Ici on sélection le chemin qui possède la plus petite valeure
-                a, dice, tourTotal= self.minValue(a1, diceFirst,a2, diceSecond, tourfinal1, tourfinal2)
-
-            return a, dice, tourTotal
-
-
-
-
+    #returns the optimal decisions and their theoretical cost
+    #needs a layout and if the board is circular or not
     def markovDecision(self, layout, circle):
-
-        if circle == False:
-            self.board.graph[15] = [15]
-        else:
+        #sets the graph to be circular or not
+        if circle:
             self.board.graph[15] = [1]
+        else:
+            self.board.graph[15] = [15]
 
-        arrayExpected = [] #liste du cout
-        arrayDice = [] #list du choix de dé
-        arrayV=[] #list de la valeur V
+        self.board.layout = layout
 
-        for i in range(1,15):
-            value, dice, tour = self.V(i, 0)
-            arrayExpected.append(tour)
-            arrayDice.append(dice)
-            arrayV.append(value)
+        
+        #iterates trough the values to arrive to a converging function
+        for _ in range(1, 1000):
+            for i in range(1, 15):
+                value, dice = self.V(i)
+                self.arrayDice[i] = dice
+                self.arrayExpected[i] = value
 
-        Expect = np.array(arrayExpected);
-        Dice = np.array(arrayDice);
-        markovDecisionsList = [Expect,Dice]
+        #modifies the array to be the demanded form
+        self.arrayExpected.pop(0)
+        self.arrayExpected.pop(len(self.arrayExpected)-1)
+        Expect = np.array(self.arrayExpected)
 
+        #modifies the array to be the demanded form
+        self.arrayDice.pop(0)
+        self.arrayDice.pop(len(self.arrayDice)-1)
+        Dice = np.array(self.arrayDice)
+
+        #shows information
+        markovDecisionsList = [Expect, Dice]
+        print("layout")
+        print(self.board.layout)
         print("dice")
         print(Dice)
-        print("number of expected tour")
+        print("number of expected turn")
         print(Expect)
-        print("value of Markov equation")
-        print(arrayV)
 
         return markovDecisionsList
 
 class Board:
 
+    #value of all the cases
     layout = np.ndarray([])
+    #graph shows how to move on the board
     graph = {1: [2],
              2: [3],
-             3: [4,11],
+             3: [4, 11],
              4: [5],
              5: [6],
              6: [7],
@@ -163,21 +134,21 @@ class Board:
         self.layout = np.zeros(15)
         self.generateLayout(nbrTraps, typeOfTraps)
 
-    def generateLayout(self, nbrTraps,typeOfTraps):
-        for i in range(0, nbrTraps):
-            rdPos = rd.randint(1,13)
-            while self.layout[rdPos] != 0 :
-                ++rdPos
+    #generates traps randomly
+    def generateLayout(self, nbrTraps, typeOfTraps):
+        for _ in range(0, nbrTraps):
+            rdPos = rd.randint(1, 13)
+            while self.layout[rdPos] != 0:
+                rdPos += 1
 
-            self.layout[rdPos]= typeOfTraps
+            self.layout[rdPos] = typeOfTraps
         return
 
-class Traps :
-    typeOfTrap = 0;
-
-class Player :
+#only has position for better clarity
+class Player:
     position = 0
 
+#in charge of the movement of the player
 class Movement:
 
     player = None
@@ -188,56 +159,79 @@ class Movement:
         self.player = player
         self.board = board
 
-    #probabilité = 0.5
+    #probability = 0.5
     def throwSecurityDice(self):
-        if self.frozen == True :
-            self.frozen = False
-            return
-        self.move(rd.randint(0,1))
+        self.move(rd.randint(0, 1))
         return
 
     #probability = 0.333..
     def throwNormalDice(self):
-        if self.frozen == True :
-            self.frozen = False
-            return
-        self.move(rd.randint(0,2))
+        self.move(rd.randint(0, 2))
         self.checkForTraps()
         return
 
+    #applies the traps on the player
     def checkForTraps(self):
 
-        trapType = self.board.layout[self.player.position]
+        trapType = self.board.layout[self.player.position-1]
 
         if trapType == 4:
-            trapType = rd.randint(1,3)
+            trapType = rd.randint(1, 3)
 
         if trapType == 0:
             return
         elif trapType == 1:
-            self.player.position = 0
+            self.player.position = 1
             return
         elif trapType == 2:
-            self.player.position-=3
-            if self.player.position < 0:
-                self.player.position = 0
+            for _ in range(0, 3):
+                if self.player.position == 11:
+                    self.player.position = 3
+                else:
+                    self.player.position -= 1
+            if self.player.position < 1:
+                self.player.position = 1
             return
         elif trapType == 3:
-            self.frozen
+            self.frozen = True
             return
 
 
         return
 
+    #makes the player move in a real game
     def move(self, nbrMv):
-        if self.player.position == 3 and nbrMv > 0:
-            self.board.graph[3[rd.randint(0,1)]]
-            --nbrMv
+        if self.frozen == True:
+            self.frozen = False
+            return
+        if self.player.position == 3 and nbrMv  > 0:
+            self.player.position = self.board.graph[3][rd.randint(0, 1)]
+            nbrMv -= 1
 
-        for i in range(0,nbrMv):
-            self.player.position = self.board.graph[self.player.position]
+        for _ in range(0, nbrMv):
+            self.player.position = self.board.graph[self.player.position][0]
         return
 
+    #calculates where the player will end up
+    def calculateNextPosition(self, state, nbrMv, takeShorcut, isSecurityDice):
+        self.frozen = False
+        self.player.position = state
+        if self.player.position == 3 and nbrMv > 0:
+            if takeShorcut:
+                self.player.position = self.board.graph[3][1]
+            else:
+                self.player.position = self.board.graph[3][0]
+            nbrMv -= 1
+
+        for _ in range(0, nbrMv):
+            self.player.position = self.board.graph[self.player.position][0]
+        if isSecurityDice == False:
+            self.checkForTraps()
+
+        return self.frozen, self.player.position
 
 if __name__ == "__main__":
     a = Game()
+def markovDecision(layout, circle):
+    return Game().markovDecision(layout,circle)
+    return a.markovDecision(layout,circle)
