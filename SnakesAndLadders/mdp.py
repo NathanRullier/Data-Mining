@@ -16,7 +16,6 @@ class Game:
         self.board = Board(0, 0)
         self.player = Player()
         self.movement = Movement(self.player, self.board)
-        self.markovDecision(self.board.layout, self.circle)
 
     def minDice(self, value1, value2):
         if value1 < value2:
@@ -230,6 +229,8 @@ class Movement:
             self.checkForTraps()
 
         return self.frozen, self.player.position
-    
+
+if __name__ == "__main__":
+    a = Game()
 def markovDecision(layout, circle):
-    return Game().markovDecision(layout,circle)
+    return a.markovDecision(layout,circle)
