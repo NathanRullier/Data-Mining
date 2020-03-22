@@ -9,11 +9,11 @@ class Game:
     circle = False
     movement = None
     player = None
-    arrayExpected = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] #liste du cout
-    arrayDice = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] #list du choix de dé
+    arrayExpected = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] #list of cost
+    arrayDice = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] #list of dice choice
 
     def __init__(self):
-        self.board = Board(4, 4)
+        self.board = Board(0, 4)
         self.player = Player()
         self.movement = Movement(self.player, self.board)
         self.markovDecision(self.board.layout, self.circle)
@@ -92,8 +92,14 @@ class Game:
                 self.arrayDice[i] = dice
                 self.arrayExpected[i] = value
 
+        self.arrayExpected.pop(0)
+        self.arrayExpected.pop(len(self.arrayExpected)-1)
         Expect = np.array(self.arrayExpected)
+
+        self.arrayDice.pop(0)
+        self.arrayDice.pop(len(self.arrayDice)-1)
         Dice = np.array(self.arrayDice)
+
         markovDecisionsList = [Expect, Dice]
         print("layout")
         print(self.board.layout)
