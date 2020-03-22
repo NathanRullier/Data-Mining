@@ -21,7 +21,6 @@ class Game:
     def minDice(self, value1, value2):
         if value1 < value2:
             return value1, 1
-
         return value2, 2
 
     #function V returns Bellman's value
@@ -56,7 +55,6 @@ class Game:
             return minV, dice
 
     def calculateValue(self, state, takeShorcut, isSecurityDice):
-        isFrozen = False
         value = 1
         if isSecurityDice:
             diceRange = 2
@@ -66,10 +64,7 @@ class Game:
             tempFrozen, tempPosition = self.movement.calculateNextPosition(state, i, takeShorcut, isSecurityDice)
             value += self.arrayExpected[tempPosition]/diceRange
             if tempFrozen:
-                isFrozen = True
-        
-        if isFrozen:
-            value += 1
+                value += 1/diceRange
         
         return value
         
