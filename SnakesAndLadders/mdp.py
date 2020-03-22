@@ -230,7 +230,5 @@ class Movement:
 
         return self.frozen, self.player.position
 
-if __name__ == "__main__":
-    a = Game()
 def markovDecision(layout, circle):
     return a.markovDecision(layout,circle)
