@@ -13,7 +13,7 @@ class Game:
     arrayDice = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] #list du choix de dé
 
     def __init__(self):
-        self.board = Board(0,1)
+        self.board = Board(4,3)
         self.player = Player()
         self.movement = Movement(self.player, self.board)
         self.markovDecision(self.board.layout, self.circle)
@@ -42,6 +42,10 @@ class Game:
     #the function returns in order: The chosen dice and the estimated cost in number of turn in the form of V
     def V(self, state, turn):
         #CHeck si la case actuelle est la case finale
+        isFreeze = self.board.layout[state] == 3
+        moveCost = 1;
+        if isFreeze:
+            moveCost = 2
         if state == 15:
             return 0, 1 # La valeur V vaut 0 sur la case finale, le choix du dé n'a ici pas d'importance, et le nombre de turn.
 
@@ -51,14 +55,13 @@ class Game:
             
             #Si il n y a qu'une case joignable
             if state != 3:
-                valueDice1 = 1 + self.arrayExpected[self.movement.calculateNextPosition(state,0,False,True)]/2 + self.arrayExpected[self.movement.calculateNextPosition(state,1,False,True)]/2
-                valueDice2 = 1 + self.arrayExpected[self.movement.calculateNextPosition(state,0,False,False)]/3 + self.arrayExpected[self.movement.calculateNextPosition(state,1,False,False)]/3 + self.arrayExpected[self.movement.calculateNextPosition(state,2,False,False)]/3
+                valueDice1 = moveCost + self.arrayExpected[self.movement.calculateNextPosition(state,0,False,True)]/2 + self.arrayExpected[self.movement.calculateNextPosition(state,1,False,True)]/2
+                valueDice2 = moveCost + self.arrayExpected[self.movement.calculateNextPosition(state,0,False,False)]/3 + self.arrayExpected[self.movement.calculateNextPosition(state,1,False,False)]/3 + self.arrayExpected[self.movement.calculateNextPosition(state,2,False,False)]/3
                 minV, dice = self.min(valueDice1, valueDice2)
 
             else:
-
-                valueDice1 = 1 + self.arrayExpected[self.movement.calculateNextPosition(state,0,False,True)]/4 + self.arrayExpected[self.movement.calculateNextPosition(state,1,False,True)]/4 + self.arrayExpected[self.movement.calculateNextPosition(state,0,True,True)]/4 + self.arrayExpected[self.movement.calculateNextPosition(state,1,True,True)]/4 
-                valueDice2 = 1 + self.arrayExpected[self.movement.calculateNextPosition(state,0,True,False)]/6 + self.arrayExpected[self.movement.calculateNextPosition(state,1,True,False)]/6 + self.arrayExpected[self.movement.calculateNextPosition(state,2,True,False)]/6 + self.arrayExpected[self.movement.calculateNextPosition(state,0,False,False)]/6 + self.arrayExpected[self.movement.calculateNextPosition(state,1,False,False)]/6 + self.arrayExpected[self.movement.calculateNextPosition(state,2,False,False)]/6
+                valueDice1 = moveCost + self.arrayExpected[self.movement.calculateNextPosition(state,0,False,True)]/4 + self.arrayExpected[self.movement.calculateNextPosition(state,1,False,True)]/4 + self.arrayExpected[self.movement.calculateNextPosition(state,0,True,True)]/4 + self.arrayExpected[self.movement.calculateNextPosition(state,1,True,True)]/4 
+                valueDice2 = moveCost + self.arrayExpected[self.movement.calculateNextPosition(state,0,True,False)]/6 + self.arrayExpected[self.movement.calculateNextPosition(state,1,True,False)]/6 + self.arrayExpected[self.movement.calculateNextPosition(state,2,True,False)]/6 + self.arrayExpected[self.movement.calculateNextPosition(state,0,False,False)]/6 + self.arrayExpected[self.movement.calculateNextPosition(state,1,False,False)]/6 + self.arrayExpected[self.movement.calculateNextPosition(state,2,False,False)]/6
                 minV, dice = self.min(valueDice1, valueDice2)
 
             return minV, dice
@@ -141,7 +144,7 @@ class Movement:
         self.checkForTraps()
         return
 
-    def checkForTraps(self):
+    def checkForTraps(self, state):
 
         trapType = self.board.layout[self.player.position-1]
 
@@ -179,9 +182,6 @@ class Movement:
 
     def calculateNextPosition(self, state, nbrMv, takeShorcut, isSecurityDice):
         self.player.position = state
-        if self.frozen == True :
-            self.frozen = False
-            return
         if self.player.position == 3 and nbrMv > 0:
             if takeShorcut:
                 self.player.position = self.board.graph[3][1]
@@ -192,7 +192,7 @@ class Movement:
         for i in range(0,nbrMv):
             self.player.position = self.board.graph[self.player.position][0]
         if isSecurityDice == False:
-            self.checkForTraps()
+            self.checkForTraps(state)
         
         return self.player.position
 
