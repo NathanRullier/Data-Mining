@@ -6,14 +6,14 @@ import random as rd
 class Game:
 
     board = None
-    circle = False
+    circle = True
     movement = None
     player = None
     arrayExpected = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] #liste du cout
     arrayDice = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] #list du choix de dé
 
     def __init__(self):
-        self.board = Board(4,3)
+        self.board = Board(0,3)
         self.player = Player()
         self.movement = Movement(self.player, self.board)
         self.markovDecision(self.board.layout, self.circle)
@@ -70,6 +70,10 @@ class Game:
 
 
     def markovDecision(self, layout, circle):
+        if circle:
+            self.board.graph[15] = [1]
+        else:
+            self.board.graph[15] = [15]
         for j in range(1,1000):
             for i in range(1,15):
                 value, dice = self.V(i, 0)
@@ -104,8 +108,7 @@ class Board:
              11: [12],
              12: [13],
              13: [14],
-             14: [15],
-             15: [15]}
+             14: [15]}
 
     def __init__(self, nbrTraps, typeOfTraps):
         self.layout = np.zeros(15)
